@@ -53,6 +53,10 @@ module Helpers
   def callable(name, *args, &block)
     attribute(:Callable, name, *args, nil, block)
   end
+
+  def transient(name, *args, &block)
+    attribute(:Transient, name, *args, nil, block)
+  end
 end
 
 Warning.extend(SileneceWarnings) if warning_api_available

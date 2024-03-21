@@ -328,4 +328,39 @@ RSpec.describe ROM::Factory::Builder do
       end
     end
   end
+
+  describe "tansient attributes" do
+    let(:attributes) do
+      [transient(:raw_password) { "password" },
+       # Don't use String#crypt in the real world:)
+       callable(:encrypted_password) {|raw_password| raw_password.crypt("salt") }]
+    end
+
+    let(:relation) { relations[:credentials] }
+
+    before do
+      conn.create_table(:credentials) do
+        primary_key :id
+        column :encrypted_password, String
+      end
+
+      conf.relation(:credentials) do
+        schema(infer: true)
+      end
+    end
+
+    after do
+      conn.drop_table(:credentials)
+    end
+
+    it "evaluates attributes using transient attributes" do
+      credential = builder.create
+      expect(credential.encrypted_password).to eql("sa3tHJ3/KuYvI")
+    end
+
+    it "preserves transient attributes" do
+      credential = builder.create
+      expect(credential.raw_password).to eql("password")
+    end
+  end
 end

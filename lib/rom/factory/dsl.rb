@@ -162,6 +162,12 @@ module ROM
         _attributes << attributes::Association.new(assoc, builder, *traits, **options)
       end
 
+      def transient(name, *args, &block)
+        unless _valid_names.include?(name)
+          define_transient(name, *args, &block)
+        end
+      end
+
       private
 
       # @api private
@@ -176,6 +182,17 @@ module ROM
       # @api private
       def respond_to_missing?(method_name, include_private = false)
         _valid_names.include?(meth) || super
+      end
+
+      # @api private
+      # f.transient :raw_password, "aaaa"
+      # f.transient(:raw_password) { fake(:internet, :password) }
+      def define_transient(name, *args, block)
+        _attributes << if block
+                         attributes::Transient.new(name, self, block)
+                       else
+                         attributes::Value.new(name, *args)
+                       end
       end
 
       # @api private
